@@ -1,0 +1,95 @@
+/* ========================================
+   GLOBALS & BASE STYLES - FULL WIDTH
+   ======================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
+  overflow-x: hidden;
+  width: 100vw; /* Full viewport width */
+}
+
+.app {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw; /* Full viewport width */
+  max-width: none; /* Remove any width constraints */
+}
+
+/* Remove any container max-widths */
+.container {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+/* Fix dropdown z-index issues */
+select {
+  position: relative;
+  z-index: 50;
+}
+
+.city-selector {
+  position: relative;
+  z-index: 100;
+}
+
+/* Ensure datalist appears above other elements */
+datalist {
+  position: absolute;
+  z-index: 1000;
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+.loading-spinner {
+  text-align: center;
+  padding: 3rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #3b82f6;
+  font-size: 0.9rem;
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+   ======================================== */
+@media (max-width: 640px) {
+  .app {
+    flex-direction: column;
+  }
+}
