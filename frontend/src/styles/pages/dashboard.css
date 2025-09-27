@@ -13,7 +13,7 @@
   width: 100%;
 }
 
-/* Header Controls */
+/* Enhanced Header Controls - Consistent Button Styling */
 .header-controls {
   display: flex;
   gap: 1rem;
@@ -22,25 +22,74 @@
   position: relative;
 }
 
-.add-location-btn {
+/* Consistent Button Base Styles */
+.add-location-btn,
+.refresh-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.2s ease;
+  min-width: 150px;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   white-space: nowrap;
 }
 
+/* Add Location Button - Green Theme */
+.add-location-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
 .add-location-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+/* Refresh All Button - Blue Theme (matching the design) */
+.refresh-btn {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+}
+
+.refresh-btn:hover {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  background: linear-gradient(135deg, #9ca3af, #6b7280);
+}
+
+/* Spinning animation for refresh icon */
+.refresh-btn .spinning {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+/* Icon styling */
+.add-location-btn svg,
+.refresh-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Button focus states */
+.add-location-btn:focus,
+.refresh-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 /* Add Location Form - Full Width */
@@ -86,13 +135,16 @@
   background: #10b981;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
 .add-btn:hover {
   background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 
 .cancel-btn {
@@ -100,12 +152,16 @@
   background: #6b7280;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
 .cancel-btn:hover {
   background: #4b5563;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
 }
 
 /* Weather Cards Grid - Full Width */
@@ -367,9 +423,17 @@
   background: #2563eb;
 }
 
-/* Spinning Animation */
-.spinning {
-  animation: spin 1s linear infinite;
+/* Animation for spinning refresh icon */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Pulse animation for alerts */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
 }
 
 /* Responsive Design */
@@ -425,5 +489,6 @@
   .refresh-btn {
     width: 100%;
     justify-content: center;
+    min-width: auto;
   }
 }

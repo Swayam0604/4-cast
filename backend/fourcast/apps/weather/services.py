@@ -20,34 +20,17 @@ class WeatherService:
         Returns: dict with weather data or None if error
         """
         
-        # TEMPORARY: Mock data for development
-        if not cls.API_KEY or cls.API_KEY == 'your-api-key-here':
-            print(f"DEBUG: Using mock data for {city}")
-            mock_weather_data = {
-                'city': city,
-                'latitude': 19.0728 if city.lower() == 'mumbai' else 28.6139,
-                'longitude': 72.8826 if city.lower() == 'mumbai' else 77.2090,
-                'temperature': round(28.5 + (hash(city) % 10), 1),  # Vary by city
-                'humidity': 75 + (hash(city) % 20),
-                'rainfall': 0.0 if hash(city) % 3 == 0 else round((hash(city) % 5) * 2.5, 1),
-                'wind_speed': round(12.3 + (hash(city) % 8), 1),
-                'weather_condition': 'partly cloudy' if hash(city) % 2 == 0 else 'clear sky',
-                'icon': '02d' if hash(city) % 2 == 0 else '01d',
-            }
-            
-            # Save mock data to database
-            try:
-                weather_record = WeatherData.objects.create(**mock_weather_data)
-                print(f"Mock weather data saved for {city}: {mock_weather_data['temperature']}°C")
-            except Exception as e:
-                print(f"Error saving mock data: {e}")
-            
-            # Check alerts with mock data
-            cls._check_alert_thresholds(mock_weather_data)
-            
-            return mock_weather_data
+        # DEBUG: Check API key loading
+        print(f"DEBUG: Loaded API Key: {cls.API_KEY[:8]}...{cls.API_KEY[-4:] if cls.API_KEY else 'None'}")
         
-        # REAL API CODE (when you have API key)
+        # Check if we have a real API key
+        if not cls.API_KEY or cls.API_KEY in ['your-api-key-here', '', 'None']:
+            print(f"DEBUG: Using mock data for {city} - API key not configured properly")
+            return cls._generate_mock_data(city)  # We'll create this method below
+        
+        print(f"DEBUG: Using REAL OpenWeatherMap API for {city}")
+        
+        # REAL API CODE
         try:
             url = f"{cls.BASE_URL}/weather"
             params = {
@@ -56,11 +39,29 @@ class WeatherService:
                 'units': 'metric'
             }
             
+           
+            
             logger.info(f"Fetching weather for {city}")
             response = requests.get(url, params=params, timeout=10)
-            response.raise_for_status()
+            
+           
+            if response.status_code != 200:
+               
+                response.raise_for_status()
             
             data = response.json()
+            
+            
+            # Extract rainfall properly
+            rainfall = 0.0
+            if 'rain' in data:
+             
+                rainfall = data['rain'].get('1h', data['rain'].get('3h', 0.0) / 3)
+            elif 'snow' in data:
+               
+                rainfall = data['snow'].get('1h', data['snow'].get('3h', 0.0) / 3)
+            else:
+                print("DEBUG: No rain or snow data in API response - it's not raining")
             
             # Extract and structure weather data
             weather_data = {
@@ -69,15 +70,20 @@ class WeatherService:
                 'longitude': data['coord']['lon'],
                 'temperature': round(data['main']['temp'], 1),
                 'humidity': data['main']['humidity'],
-                'rainfall': data.get('rain', {}).get('1h', 0.0),
-                'wind_speed': round(data['wind']['speed'] * 3.6, 1),
+                'rainfall': round(rainfall, 1),
+                'wind_speed': round(data['wind']['speed'] * 3.6, 1),  # Convert m/s to km/h
                 'weather_condition': data['weather'][0]['description'],
                 'icon': data['weather'][0]['icon'],
             }
             
+            print(f"DEBUG: Extracted weather data: {weather_data}")
+            
             # Save to database
-            weather_record = WeatherData.objects.create(**weather_data)
-            logger.info(f"Weather data saved for {city}: {weather_data['temperature']}°C")
+            try:
+                weather_record = WeatherData.objects.create(**weather_data)
+                logger.info(f"REAL weather data saved for {city}: {weather_data['temperature']}°C, {weather_data['rainfall']}mm rainfall")
+            except Exception as db_error:
+                print(f"DEBUG: Database save error: {db_error}")
             
             # Check if we need to create alerts
             cls._check_alert_thresholds(weather_data)
@@ -85,11 +91,14 @@ class WeatherService:
             return weather_data
             
         except requests.exceptions.RequestException as e:
+            print(f"DEBUG: API Request Exception: {str(e)}")
             logger.error(f"API request failed for {city}: {str(e)}")
+            
             # Fallback to latest cached data
             try:
                 latest_weather = WeatherData.objects.filter(city__iexact=city).first()
                 if latest_weather:
+                    print(f"DEBUG: Using cached data for {city}")
                     return {
                         'city': latest_weather.city,
                         'latitude': latest_weather.latitude,
@@ -101,14 +110,43 @@ class WeatherService:
                         'weather_condition': latest_weather.weather_condition,
                         'icon': '01d',  # Default icon
                     }
-            except:
-                pass
+            except Exception as cache_error:
+                print(f"DEBUG: Cache retrieval error: {cache_error}")
+            
             return None
+            
         except Exception as e:
+            print(f"DEBUG: General Exception: {str(e)}")
             logger.error(f"Error processing weather data for {city}: {str(e)}")
             return None
 
-    
+    @classmethod
+    def _generate_mock_data(cls, city):
+        """Generate mock data as fallback"""
+        import random
+        mock_weather_data = {
+            'city': city,
+            'latitude': 19.0728 if city.lower() == 'mumbai' else 28.6139,
+            'longitude': 72.8826 if city.lower() == 'mumbai' else 77.2090,
+            'temperature': round(28.5 + random.uniform(-3, 5), 1),
+            'humidity': 75 + random.randint(-10, 15),
+            'rainfall': round(random.choice([0, 0, 0, 0.5, 1.2, 2.1, 0.8]), 1),
+            'wind_speed': round(12.3 + random.uniform(-4, 8), 1),
+            'weather_condition': random.choice(['partly cloudy', 'clear sky', 'light rain']),
+            'icon': random.choice(['02d', '01d', '10d']),
+        }
+        
+        # Save mock data to database
+        try:
+            weather_record = WeatherData.objects.create(**mock_weather_data)
+            print(f"Mock weather data saved for {city}: {mock_weather_data['temperature']}°C")
+        except Exception as e:
+            print(f"Error saving mock data: {e}")
+        
+        cls._check_alert_thresholds(mock_weather_data)
+        return mock_weather_data
+
+
     @classmethod
     def get_forecast(cls, city, days=5):
         """

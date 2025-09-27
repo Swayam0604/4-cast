@@ -226,7 +226,6 @@ const Dashboard = () => {
       <div className="page-header">
         <div className="header-content">
           <h1>🌦️ Weather Dashboard</h1>
-          <p>Real-time weather monitoring for multiple locations</p>
         </div>
         <div className="header-controls">
           <button
