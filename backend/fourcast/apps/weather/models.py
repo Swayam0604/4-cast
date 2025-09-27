@@ -41,6 +41,7 @@ class WeatherData(models.Model):
     rainfall = models.FloatField(default=0.0)
     wind_speed = models.FloatField()
     weather_condition = models.CharField(max_length=100)
+    icon = models.CharField(max_length=10, default='01d')
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
